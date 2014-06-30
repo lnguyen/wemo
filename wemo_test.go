@@ -11,9 +11,14 @@ func TestSwitches(t *testing.T) {
 		switches, err := Switches()
 		So(err, ShouldBeNil)
 		fmt.Println(switches)
-		if len(switches) > 1 {
-			switches[0].Off()
-			switches[0].On()
+		if len(switches) > 0 {
+			if switches[0].Status() == 1 {
+				switches[0].Off()
+				switches[0].On()
+			} else {
+				switches[0].On()
+				switches[0].Off()
+			}
 		}
 	})
 }

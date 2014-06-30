@@ -19,6 +19,11 @@ type Setup struct {
 	FriendlyName string   `xml:"device>friendlyName"`
 }
 
+type BinaryState struct {
+	XMLName     xml.Name `xml:"Envelope"`
+	BinaryState int      `xml:"Body>GetBinaryStateResponse>BinaryState"`
+}
+
 func Get(url string) []byte {
 	resp, err := http.Get(url)
 	if err != nil {
@@ -56,6 +61,20 @@ func (s *Switch) Off() {
 	s.setBinaryState("0")
 }
 
+func (s *Switch) Status() int {
+	var binaryState BinaryState
+	reqXml := `<?xml version="1.0" encoding="utf-8"?><s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"><s:Body><u:GetBinaryState xmlns:u="urn:Belkin:service:basicevent:1"></u:GetBinaryState></s:Body></s:Envelope>`
+	url := "http://" + s.Host + "/upnp/control/basicevent1"
+	req, _ := http.NewRequest("POST", url, strings.NewReader(reqXml))
+	req.Header.Add("SOAPACTION", `"urn:Belkin:service:basicevent:1#GetBinaryState"`)
+	req.Header.Add("Content-type", `text/xml; charset="utf-8"`)
+	client := http.Client{}
+	resp, _ := client.Do(req)
+	defer resp.Body.Close()
+	body, _ := ioutil.ReadAll(resp.Body)
+	xml.Unmarshal(body, &binaryState)
+	return binaryState.BinaryState
+}
 func (s *Switch) setBinaryState(signal string) {
 	binaryState := `<?xml version="1.0" encoding="utf-8"?><s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"><s:Body><u:SetBinaryState xmlns:u="urn:Belkin:service:basicevent:1"><BinaryState>` + signal + `</BinaryState></u:SetBinaryState></s:Body></s:Envelope>`
 	url := "http://" + s.Host + "/upnp/control/basicevent1"
