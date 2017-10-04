@@ -81,6 +81,5 @@ func (s *Switch) setBinaryState(signal string) {
 	req, _ := http.NewRequest("POST", url, strings.NewReader(binaryState))
 	req.Header.Add("SOAPACTION", `"urn:Belkin:service:basicevent:1#SetBinaryState"`)
 	req.Header.Add("Content-type", `text/xml; charset="utf-8"`)
-	client := http.Client{}
-	client.Do(req)
+	http.DefaultClient.Do(req)
 }
